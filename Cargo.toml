@@ -1,0 +1,10 @@
+[package]
+name = "bevy-asteroids"
+version = "0.1.0"
+authors = ["Boris Boutillier <boris.boutillier@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy" }
+rand = "0.7.3"
+ncollide2d = "0.24.0"
