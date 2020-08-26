@@ -84,16 +84,26 @@ fn position_system(
 fn collision_system(
     mut world: ResMut<CollisionWorld<f32, Entity>>,
     mut velocities: Query<(Entity, Mut<Velocity>)>,
+    mut translations: Query<(Entity, Mut<Translation>)>,
 ) {
     world.update();
     for (h1, h2, _, manifold) in world.contact_pairs(true) {
         if let Some(tracked_contact) = manifold.deepest_contact() {
-            let contact_normal = tracked_contact.contact.normal.into_inner();
+            let contact = tracked_contact.contact;
+            let contact_normal = contact.normal.into_inner();
             let entity1 = *world.collision_object(h1).unwrap().data();
             let entity2 = *world.collision_object(h2).unwrap().data();
+            // Reflect velocity vector of the two object around normal
             for (entity, mut velocity) in &mut velocities.iter() {
                 if entity == entity1 || entity == entity2 {
                     *velocity = Velocity(reflect(velocity.0, contact_normal));
+                }
+            }
+            // Translate the second object of 'minimal translational distance' to 'depenetrate' the two objects
+            for (entity, mut translation) in &mut translations.iter() {
+                if entity == entity2 {
+                    *translation.0.x_mut() += contact_normal[0] * contact.depth;
+                    *translation.0.y_mut() += contact_normal[1] * contact.depth;
                 }
             }
         }
@@ -118,7 +128,7 @@ fn spawn_sphere_system(
         let texture_handle = asset_server
             .load("assets/sprite_sphere_256x256.png")
             .unwrap();
-        let shape = ShapeHandle::new(Ball::new(128.0 * 0.1));
+        let shape = ShapeHandle::new(Ball::new(128.0 * 0.2));
         let entity = Entity::new();
         let (collision_object_handle, _) = world.add(
             Isometry2::new(Vector2::new(x as f32, y as f32), na::zero()),
@@ -133,7 +143,7 @@ fn spawn_sphere_system(
                 SpriteComponents {
                     translation: Translation::new(x, y, z),
                     material: materials.add(texture_handle.into()),
-                    scale: Scale(0.1),
+                    scale: Scale(0.2),
                     ..Default::default()
                 },
             )
@@ -143,7 +153,7 @@ fn spawn_sphere_system(
 }
 
 fn reflect(d: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
-    d - 2.0 * (d.dot(&n)) * n
+    d - 2.0 * n * (d.dot(&n))
 }
 
 #[derive(Default)]
