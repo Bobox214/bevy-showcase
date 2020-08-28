@@ -1,2 +1,4 @@
-# Simple example integrating Bevy and NCollide2D
+# Simple examples using the Bevy engine
+
+https://bevyengine.org/
 
