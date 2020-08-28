@@ -35,8 +35,8 @@ fn main() {
         .add_startup_system(setup.system())
         .add_system(mouse_position_system.system())
         .add_system(spawn_sphere_system.system())
-        .add_system(collision_system.system())
         .add_system(position_system.system())
+        .add_system_to_stage(stage::POST_UPDATE, collision_system.system())
         .run();
 }
 
@@ -81,7 +81,7 @@ fn position_system(mut bodies: ResMut<RigidBodySet>, mut query: Query<&RigidBody
 }
 
 fn collision_system(events: Res<EventQueue>) {
-    while let Ok(contact_event) = events.proximity_events.pop() {
+    while let Ok(contact_event) = events.contact_events.pop() {
         println!("Contact event {:?}", contact_event);
     }
     while let Ok(proximity_event) = events.proximity_events.pop() {
