@@ -1,4 +1,7 @@
-use bevy::{prelude::*, render::pass::ClearColor};
+use bevy::{
+    prelude::*,
+    render::{camera::OrthographicProjection, pass::ClearColor},
+};
 use bevy_rapier2d::{
     na::Vector2,
     physics::{Gravity, RapierPhysicsPlugin, RigidBodyHandleComponent},
@@ -11,12 +14,15 @@ use bevy_rapier2d::{
 
 const WINDOW_WIDTH: u32 = 1280;
 const WINDOW_HEIGHT: u32 = 800;
+const CAMERA_SCALE: f32 = 0.1;
+const ARENA_WIDTH: f32 = WINDOW_WIDTH as f32 * CAMERA_SCALE;
+const ARENA_HEIGHT: f32 = WINDOW_HEIGHT as f32 * CAMERA_SCALE;
 
 fn main() {
     App::build()
         .add_resource(Msaa { samples: 2 })
         .add_resource(WindowDescriptor {
-            title: "Space ship control".to_string(),
+            title: "Spaceship 01".to_string(),
             width: WINDOW_WIDTH,
             height: WINDOW_HEIGHT,
             ..Default::default()
@@ -47,7 +53,14 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn(Camera2dComponents::default());
+    commands.spawn(Camera2dComponents {
+        orthographic_projection: OrthographicProjection {
+            far: 1000.0 / CAMERA_SCALE,
+            ..Default::default()
+        },
+        scale: Scale(CAMERA_SCALE),
+        ..Default::default()
+    });
     let texture_handle = asset_server.load("assets/spaceship.png").unwrap();
     let body = RigidBodyBuilder::new_dynamic();
     let collider = ColliderBuilder::ball(1.0);
@@ -58,13 +71,13 @@ fn setup(
             SpriteComponents {
                 translation: Translation::new(0.0, 0.0, 1.0),
                 material: materials.add(texture_handle.into()),
-                scale: Scale(0.1),
+                scale: Scale(1.0 / 150.0),
                 ..Default::default()
             },
         )
         .with(Ship {
             rotation_speed: 10.0,
-            thrust: 1000.0,
+            thrust: 30.0,
         })
         .with(body)
         .with(collider);
@@ -93,8 +106,8 @@ fn position_system(mut bodies: ResMut<RigidBodySet>, mut query: Query<&RigidBody
         let mut y = body.position.translation.vector.y;
         let mut updated = false;
         // Wrap around screen edges
-        let half_width = WINDOW_WIDTH as f32 / 2.0;
-        let half_height = WINDOW_HEIGHT as f32 / 2.0;
+        let half_width = ARENA_WIDTH / 2.0;
+        let half_height = ARENA_HEIGHT / 2.0;
         if x < -half_width && body.linvel.x < 0.0 {
             x = half_width;
             updated = true;
@@ -154,6 +167,14 @@ fn user_input_system(
         let body_handle = query.get::<RigidBodyHandleComponent>(player.0).unwrap();
         let mut body = bodies.get_mut(body_handle.handle()).unwrap();
         let ship = query.get::<Ship>(player.0).unwrap();
+        //println!(
+        //    "Body world_inv_inertia_sqrt {:?}",
+        //    body.world_inv_inertia_sqrt
+        //);
+        //println!(
+        //    "Body mass_properties.inv_mass {:?}",
+        //    body.mass_properties.inv_mass
+        //);
         if rotation != 0 {
             let rotation = rotation as f32 * ship.rotation_speed;
             body.apply_torque(rotation);
