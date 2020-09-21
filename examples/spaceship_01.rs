@@ -174,12 +174,14 @@ fn user_input_system(
         //);
         if rotation != 0 {
             let rotation = rotation as f32 * ship.rotation_speed;
+            body.wake_up();
             body.apply_torque(rotation);
         }
         if thrust != 0 {
             let force = body.position.rotation.transform_vector(&Vector2::y())
                 * thrust as f32
                 * ship.thrust;
+            body.wake_up();
             body.apply_force(force);
         }
     }
