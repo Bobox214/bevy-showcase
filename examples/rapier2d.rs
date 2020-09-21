@@ -113,9 +113,8 @@ fn spawn_sphere_system(
         let collider = ColliderBuilder::ball(128.0 * 0.2).friction(-0.5);
         commands
             .spawn(SpriteComponents {
-                translation: Translation::new(x, y, z),
+                transform: Transform::from_translation(Vec3::new(x, y, z)).with_scale(0.2),
                 material: materials.add(texture_handle.into()),
-                scale: Scale(0.2),
                 ..Default::default()
             })
             .with(body)

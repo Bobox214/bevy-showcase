@@ -55,10 +55,11 @@ fn setup(mut commands: Commands) {
 fn position_system(
     time: Res<Time>,
     mut world: ResMut<CollisionWorld<f32, Entity>>,
-    mut query: Query<(Mut<Translation>, &CollisionObjectSlabHandle, &Velocity)>,
+    mut query: Query<(Mut<Transform>, &CollisionObjectSlabHandle, &Velocity)>,
 ) {
     let elapsed = time.delta_seconds;
-    for (mut translation, &handle, velocity) in &mut query.iter() {
+    for (mut transform, &handle, velocity) in &mut query.iter() {
+        let translation = transform.translation_mut();
         *translation.x_mut() += velocity.0.x * elapsed;
         *translation.y_mut() += velocity.0.y * elapsed;
         // Wrap around screen edges
@@ -84,7 +85,7 @@ fn position_system(
 fn collision_system(
     mut world: ResMut<CollisionWorld<f32, Entity>>,
     mut velocities: Query<(Entity, Mut<Velocity>)>,
-    mut translations: Query<(Entity, Mut<Translation>)>,
+    mut transforms: Query<(Entity, Mut<Transform>)>,
 ) {
     world.update();
     for (h1, h2, _, manifold) in world.contact_pairs(true) {
@@ -100,10 +101,11 @@ fn collision_system(
                 }
             }
             // Translate the second object of 'minimal translational distance' to 'depenetrate' the two objects
-            for (entity, mut translation) in &mut translations.iter() {
+            for (entity, mut transform) in &mut transforms.iter() {
                 if entity == entity2 {
-                    *translation.0.x_mut() += contact_normal[0] * contact.depth;
-                    *translation.0.y_mut() += contact_normal[1] * contact.depth;
+                    let translation = transform.translation_mut();
+                    *translation.x_mut() += contact_normal[0] * contact.depth;
+                    *translation.y_mut() += contact_normal[1] * contact.depth;
                 }
             }
         }
@@ -129,7 +131,14 @@ fn spawn_sphere_system(
             .load("assets/sprite_sphere_256x256.png")
             .unwrap();
         let shape = ShapeHandle::new(Ball::new(128.0 * 0.2));
-        let entity = Entity::new();
+        commands
+            .spawn(SpriteComponents {
+                transform: Transform::from_translation(Vec3::new(x, y, z)).with_scale(0.2),
+                material: materials.add(texture_handle.into()),
+                ..Default::default()
+            })
+            .with(Velocity(Vector2::new(vx, vy)));
+        let entity = commands.current_entity().unwrap();
         let (collision_object_handle, _) = world.add(
             Isometry2::new(Vector2::new(x as f32, y as f32), na::zero()),
             shape,
@@ -137,18 +146,7 @@ fn spawn_sphere_system(
             GeometricQueryType::Contacts(0.0, 0.0),
             entity,
         );
-        commands
-            .spawn_as_entity(
-                entity,
-                SpriteComponents {
-                    translation: Translation::new(x, y, z),
-                    material: materials.add(texture_handle.into()),
-                    scale: Scale(0.2),
-                    ..Default::default()
-                },
-            )
-            .with(Velocity(Vector2::new(vx, vy)))
-            .with(collision_object_handle);
+        commands.insert(entity, (collision_object_handle,));
     }
 }
 

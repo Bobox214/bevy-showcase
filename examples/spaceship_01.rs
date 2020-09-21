@@ -58,29 +58,26 @@ fn setup(
             far: 1000.0 / CAMERA_SCALE,
             ..Default::default()
         },
-        scale: Scale(CAMERA_SCALE),
+        transform: Transform::from_scale(CAMERA_SCALE),
         ..Default::default()
     });
     let texture_handle = asset_server.load("assets/spaceship.png").unwrap();
     let body = RigidBodyBuilder::new_dynamic();
     let collider = ColliderBuilder::ball(1.0);
-    let player_entity = Entity::new();
     commands
-        .spawn_as_entity(
-            player_entity,
-            SpriteComponents {
-                translation: Translation::new(0.0, 0.0, 1.0),
-                material: materials.add(texture_handle.into()),
-                scale: Scale(1.0 / 150.0),
-                ..Default::default()
-            },
-        )
+        .spawn(SpriteComponents {
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
+                .with_scale(1.0 / 150.0),
+            material: materials.add(texture_handle.into()),
+            ..Default::default()
+        })
         .with(Ship {
             rotation_speed: 10.0,
             thrust: 30.0,
         })
         .with(body)
         .with(collider);
+    let player_entity = commands.current_entity().unwrap();
     commands.insert_resource(Player(player_entity));
 
     //let texture_handle = asset_server
