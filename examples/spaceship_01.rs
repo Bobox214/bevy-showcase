@@ -20,7 +20,6 @@ const ARENA_HEIGHT: f32 = WINDOW_HEIGHT as f32 * CAMERA_SCALE;
 
 fn main() {
     App::build()
-        .add_resource(Msaa { samples: 2 })
         .add_resource(WindowDescriptor {
             title: "Spaceship 01".to_string(),
             width: WINDOW_WIDTH,

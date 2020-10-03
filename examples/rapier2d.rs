@@ -21,7 +21,6 @@ const WINDOW_HEIGHT: u32 = 800;
 fn main() {
     App::build()
         .init_resource::<MousePosition>()
-        .add_resource(Msaa { samples: 2 })
         .add_resource(WindowDescriptor {
             title: "Rapier2D Bevy showcase".to_string(),
             width: WINDOW_WIDTH,
