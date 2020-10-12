@@ -11,11 +11,12 @@ rand = "0.7.3"
 ncollide2d = "0.24.0"
 #bevy_rapier2d = { git = "https://github.com/dimforge/bevy_rapier"}
 #bevy_rapier2d = { path = "/home/boris/work/rust/forks/bevy_rapier/bevy_rapier2d"}
-bevy_rapier2d = "0.2.0"
+bevy_rapier2d = "0.3.1"
 
 
 # The following is required so that the bevy crate and the bevy_rapied2d crate reference
 # the same version of bevy.
 # Without you can have a 'missing bevy::Plugin trait' when load the Rapier2dEnginePlugin
-#[patch.crates-io]
+[patch.crates-io]
 #bevy= {git="https://github.com/bevyengine/bevy"}
+rapier2d = {git="https://github.com/dimforge/rapier", branch="wquadtree_stack_overflow"}

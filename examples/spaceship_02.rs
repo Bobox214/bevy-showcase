@@ -4,7 +4,7 @@ use bevy::{
 };
 use bevy_rapier2d::{
     na::Vector2,
-    physics::{EventQueue, Gravity, RapierPhysicsPlugin, RigidBodyHandleComponent},
+    physics::{EventQueue, RapierConfiguration, RapierPhysicsPlugin, RigidBodyHandleComponent},
     rapier::{
         dynamics::{RigidBodyBuilder, RigidBodyHandle, RigidBodySet},
         geometry::ColliderBuilder,
@@ -32,7 +32,10 @@ fn main() {
         .add_resource(ClearColor(Color::rgb(0.02, 0.02, 0.04)))
         .add_plugin(RapierPhysicsPlugin)
         .add_default_plugins()
-        .add_resource(Gravity(Vector2::zeros()))
+        .add_resource(RapierConfiguration {
+            gravity: Vector2::zeros(),
+            ..Default::default()
+        })
         .add_startup_system(setup.system())
         .add_startup_system(spawn_player.system())
         .add_startup_system(spawn_asteroid.system())
@@ -89,7 +92,8 @@ fn spawn_player(
     //);
     commands
         .spawn(SpriteComponents {
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)).with_scale(1.0 / 37.0),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0))
+                .with_scale(1.0 / 37.0),
             material: materials.add(texture_handle.into()),
             ..Default::default()
         })
@@ -159,7 +163,7 @@ fn spawn_asteroid(
     let collider = ColliderBuilder::ball(5.0);
     commands
         .spawn(SpriteComponents {
-            transform: Transform::from_translation(Vec3::new(x, y, 1.0)).with_scale(1.0 / 10.0),
+            transform: Transform::from_translation(Vec3::new(x, y, -1.0)).with_scale(1.0 / 10.0),
             material: materials.add(texture_handle.into()),
             ..Default::default()
         })
@@ -239,14 +243,14 @@ fn user_input_system(
         let ship = query.get::<Ship>(player.0).unwrap();
         if rotation != 0 {
             let rotation = rotation as f32 * ship.rotation_speed;
-            body.wake_up();
+            body.wake_up(true);
             body.apply_torque(rotation);
         }
         if thrust != 0 {
             let force = body.position.rotation.transform_vector(&Vector2::y())
                 * thrust as f32
                 * ship.thrust;
-            body.wake_up();
+            body.wake_up(true);
             body.apply_force(force);
         }
     }

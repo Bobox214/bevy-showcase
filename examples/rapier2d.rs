@@ -7,7 +7,7 @@ use bevy::{
 };
 use bevy_rapier2d::{
     na::Vector2,
-    physics::{EventQueue, Gravity, RapierPhysicsPlugin, RigidBodyHandleComponent},
+    physics::{EventQueue, RapierConfiguration, RapierPhysicsPlugin, RigidBodyHandleComponent},
     rapier::{
         dynamics::{RigidBodyBuilder, RigidBodySet},
         geometry::ColliderBuilder,
@@ -30,7 +30,10 @@ fn main() {
         .add_resource(ClearColor(Color::rgb(0.01, 0.01, 0.03)))
         .add_plugin(RapierPhysicsPlugin)
         .add_default_plugins()
-        .add_resource(Gravity(Vector2::zeros()))
+        .add_resource(RapierConfiguration {
+            gravity: Vector2::zeros(),
+            ..Default::default()
+        })
         .add_startup_system(setup.system())
         .add_system(mouse_position_system.system())
         .add_system(spawn_sphere_system.system())
