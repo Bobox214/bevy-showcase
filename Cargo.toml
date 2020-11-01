@@ -17,6 +17,6 @@ bevy_rapier2d = "0.3.1"
 # The following is required so that the bevy crate and the bevy_rapied2d crate reference
 # the same version of bevy.
 # Without you can have a 'missing bevy::Plugin trait' when load the Rapier2dEnginePlugin
-[patch.crates-io]
-#bevy= {git="https://github.com/bevyengine/bevy"}
-rapier2d = {git="https://github.com/dimforge/rapier", branch="wquadtree_stack_overflow"}
+#[patch.crates-io]
+##bevy= {git="https://github.com/bevyengine/bevy"}
+#rapier2d = {git="https://github.com/dimforge/rapier"}
